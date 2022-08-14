@@ -20,22 +20,12 @@ object Application extends App {
     val pathToData2 = "src/main/resources/data/student.csv"
 
     dataImporter ! LoadData(pathToData2)
-    println("power nap 5 sec")
-    Thread.sleep(5000)
-    dataImporter ! GetRegisteredSchools // dataImported switches to withSchools
-    println("power nap 5 sec")
-    Thread.sleep(5000)
-    dataImporter ! SendData // loading data for each registered school which can be found in csv
-    println("power nap 60 sec")
-    //Thread.sleep(60000)
-    system.scheduler.scheduleOnce(60 seconds) {
-        dataImporter ! AskSchoolStatistic("GP")
-        dataImporter ! AskSchoolStatistic("MS")
-    }(system.dispatcher)
-//        dataImporter ! AskSchoolStatistic("GP")
-//        dataImporter ! AskSchoolStatistic("MS")
-    Thread.sleep(500)
-    dataImporter ! Done
+    system.scheduler.scheduleOnce(1 seconds, dataImporter, GetRegisteredSchools)(system.dispatcher)
+    system.scheduler.scheduleOnce(5 seconds, dataImporter, SendData)(system.dispatcher)
+    system.scheduler.scheduleOnce(60 seconds, dataImporter, AskSchoolStatistic("GP"))(system.dispatcher)
+    system.scheduler.scheduleOnce(60 seconds, dataImporter, AskSchoolStatistic("MS"))(system.dispatcher)
+    system.scheduler.scheduleOnce(65 seconds, dataImporter, Done)(system.dispatcher)
+
 
 }
 
