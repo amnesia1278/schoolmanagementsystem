@@ -1,8 +1,10 @@
 target/
+src/main/resources
 
 .settings
 .project
 .classpath
+
 
 .idea
 *.iml
