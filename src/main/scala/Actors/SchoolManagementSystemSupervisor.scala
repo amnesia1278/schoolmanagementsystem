@@ -9,6 +9,8 @@ import scala.language.postfixOps
 
 class SchoolManagementSystemSupervisor extends Actor with ActorLogging {
 
+    import SchoolManagementSystemSupervisor._
+
     override def preStart(): Unit = log.info(s"[SMS] SMS is created")
 
     override def postStop(): Unit = log.info(s"[SMS] SMS is stopped")
@@ -48,8 +50,10 @@ class SchoolManagementSystemSupervisor extends Actor with ActorLogging {
     }
 }
 
-case class CreateSchool(name: String)
+object SchoolManagementSystemSupervisor {
+    case class CreateSchool(name: String)
 
-case object SchoolList
+    case object SchoolList
 
-case class SchoolList(schoolList: List[ActorRef])
+    case class SchoolList(schoolList: List[ActorRef])
+}

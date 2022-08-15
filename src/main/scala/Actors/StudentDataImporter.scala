@@ -1,5 +1,7 @@
 package Actors
 
+
+import Actors.SchoolManagementSystemSupervisor.CreateSchool
 import akka.Done
 import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill}
 import akka.stream.alpakka.csv.scaladsl.CsvParsing.SemiColon
@@ -8,13 +10,15 @@ import akka.stream.scaladsl.{FileIO, Sink}
 import akka.util.Timeout
 
 import java.nio.file.Paths
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
 class StudentDataImporter(sms: ActorRef) extends Actor with ActorLogging {
+
+    import StudentDataImporter._
+    import Actors.School.{Statistic, WriteToDB}
+    import Actors.SchoolManagementSystemSupervisor.SchoolList
 
     val mainSMS = sms
 
@@ -26,7 +30,8 @@ class StudentDataImporter(sms: ActorRef) extends Actor with ActorLogging {
 
     /**
      * Default behavior withoutSchools(None) data and list of schools are unknown.
-     * @param data: from external source e.g., csv
+     *
+     * @param data : from external source e.g., csv
      * @return
      */
     def withoutSchools(data: Option[Seq[Map[String, String]]]): Receive = {
@@ -52,7 +57,7 @@ class StudentDataImporter(sms: ActorRef) extends Actor with ActorLogging {
                         mainSMS ! CreateSchool(x))
                     context.become(withoutSchools(Some(result)))
                 case Failure(exception) => log.info(exception.getMessage)
-            })
+            })(context.dispatcher)
 
         /**
          * Send message to SMS asking for the list of active schools
@@ -71,8 +76,9 @@ class StudentDataImporter(sms: ActorRef) extends Actor with ActorLogging {
 
     /**
      * Behavior when potential active schools are known.
-     * @param schoolList: list of active schools from SMS
-     * @param batch: data to be loaded
+     *
+     * @param schoolList : list of active schools from SMS
+     * @param batch      : data to be loaded
      */
     def withSchools(schoolList: List[ActorRef], batch: Seq[Map[String, String]]): Receive = {
         /**
@@ -104,17 +110,14 @@ class StudentDataImporter(sms: ActorRef) extends Actor with ActorLogging {
             })
 
         /**
-         * Send a message to a school by name asking for its statistic
+         * Send a message to a school asking for its statistic
          */
-        case AskSchoolStatistic(school) =>
-            if (schoolList.map(_.path.name).contains(school)) {
+        case AskSchoolStatistic =>
                 implicit val timeout: Timeout = Timeout(5 seconds)
-                log.info(s"[StudentDataImporter] Asking statistic of $school")
-                val receiver = schoolList.filter(actor => actor.path.name == school).head
-                receiver ! Statistic
-            } else {
-                log.info(s"[StudentDataImporter] School: $school does not exist")
-            }
+                log.info(s"[StudentDataImporter] Asking statistic of the active schools")
+                schoolList.map(receiver => {
+                    receiver ! Statistic
+                })
 
         /**
          * Print school statistic
@@ -142,12 +145,14 @@ class StudentDataImporter(sms: ActorRef) extends Actor with ActorLogging {
     }
 }
 
-case class LoadData(path: String)
+object StudentDataImporter {
+    case class LoadData(path: String)
 
-case object SendData
+    case object SendData
 
-case class AskSchoolStatistic(school: String)
+    case object AskSchoolStatistic
 
-case object GetRegisteredSchools
+    case object GetRegisteredSchools
 
-case class SchoolStatistic(name: String, numberOfGrades: Int, average: Float)
+    case class SchoolStatistic(name: String, numberOfGrades: Int, average: Float)
+}

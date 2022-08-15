@@ -1,6 +1,7 @@
 package utils
 
-import Actors.{ReadFromDB, Statistic, WriteToDB}
+import Actors.School.{ReadFromDB, Statistic, WriteToDB}
+
 import akka.actor.ActorSystem
 import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}
 import com.typesafe.config.Config

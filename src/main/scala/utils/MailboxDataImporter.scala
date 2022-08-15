@@ -1,6 +1,7 @@
 package utils
 
-import Actors.{AskSchoolStatistic, GetRegisteredSchools, LoadData, SchoolList, SchoolStatistic, SendData}
+import Actors.SchoolManagementSystemSupervisor.SchoolList
+import Actors.StudentDataImporter.{AskSchoolStatistic, GetRegisteredSchools, LoadData, SchoolStatistic, SendData}
 import akka.actor.ActorSystem
 import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}
 import com.typesafe.config.Config

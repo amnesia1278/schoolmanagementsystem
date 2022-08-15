@@ -16,7 +16,7 @@ class AkkaQuickstartSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike 
 //      underTest ! Greet("Santa", replyProbe.ref)
 //      replyProbe.expectMessage(Greeted("Santa", underTest.ref))
 //    }
-    //#test
+
   }
 
 //#full-example
